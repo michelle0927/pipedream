@@ -177,7 +177,15 @@ export default {
         method,
         url: `https://api.clickup.com/api/v2/${endpoint}`,
       };
-      if (data) config.data = data;
+      if (data) {
+        data = Object.entries(data).reduce((a, [
+          k,
+          v,
+        ]) => (v
+          ? (a[k] = v, a)
+          : a), {});
+        config.data = data;
+      }
       const response = await axios($ || this, config).catch((err) => {
         if (err.response.status !== 200) {
           throw new Error(`API call failed with status code: ${err.response.status}`);
