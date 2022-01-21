@@ -93,5 +93,6 @@ export default {
         $,
       });
     $.export("$summary", `Successfully created list ${name}`);
+    return res;
   },
 };

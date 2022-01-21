@@ -193,5 +193,6 @@ export default {
       $,
     });
     $.export("$summary", `Successfully created task ${name}`);
+    return res;
   },
 };

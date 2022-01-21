@@ -9,8 +9,8 @@ export default {
       label: "Workspace",
       description: "Workspace",
       async options() {
-        const workspaces = (await this.getWorkspaces({})).teams;
-        return workspaces.map((workspace) => ({
+        const { teams } = await this.getWorkspaces({});
+        return teams.map((workspace) => ({
           label: workspace.name,
           value: workspace.id,
         }));
@@ -21,9 +21,9 @@ export default {
       label: "Space",
       description: "Space",
       async options({ workspace }) {
-        const spaces = (await this.getSpaces({
+        const { spaces } = await this.getSpaces({
           workspace,
-        })).spaces;
+        });
         return spaces.map((space) => ({
           label: space.name,
           value: space.id,
@@ -35,9 +35,9 @@ export default {
       label: "Folder",
       description: "Folder",
       async options({ space }) {
-        const folders = (await this.getFolders({
+        const { folders } = await this.getFolders({
           space,
-        })).folders;
+        });
         return folders.map((folder) => ({
           label: folder.name,
           value: folder.id,
@@ -52,13 +52,13 @@ export default {
       async options({
         folder, space,
       }) {
-        const lists = folder
-          ? (await this.getLists({
+        const { lists } = folder
+          ? await this.getLists({
             folder,
-          })).lists
-          : (await this.getFolderlessLists({
+          })
+          : await this.getFolderlessLists({
             space,
-          })).lists;
+          });
         return lists.map((list) => ({
           label: list.name,
           value: list.id,
@@ -83,12 +83,11 @@ export default {
     tags: {
       type: "string[]",
       label: "Tags",
-      description:
-        "Select the tags for the task to filter when searching for the tasks",
+      description: "Select the tags for the task to filter when searching for the tasks",
       async options({ space }) {
-        const tags = (await this.getTags({
+        const { tags } = await this.getTags({
           space,
-        })).tags;
+        });
         return tags.map((tag) => tag.name);
       },
       optional: true,
@@ -98,9 +97,9 @@ export default {
       label: "Status",
       description: "Select the status of the task",
       async options({ list }) {
-        const statuses = (await this.getList({
+        const { statuses } = await this.getList({
           list,
-        })).statuses;
+        });
         return statuses.map((status) => status.status);
       },
       optional: true,
@@ -112,10 +111,10 @@ export default {
       async options({
         list, page,
       }) {
-        const tasks = (await this.getTasks({
+        const { tasks } = await this.getTasks({
           list,
           page,
-        })).tasks;
+        });
         return tasks.map((task) => ({
           label: task.name,
           value: task.id,
@@ -151,16 +150,14 @@ export default {
     parent: {
       type: "string",
       label: "Parent",
-      description:
-        `Pass an existing task ID in the parent property to make the new task a subtask of that parent. 
-        The parent you pass must not be a subtask itself, and must be part of the specified list.`,
+      description: "Pass an existing task ID in the parent property to make the new task a subtask of that parent. The parent you pass must not be a subtask itself, and must be part of the specified list.",
       async options({
         list, page,
       }) {
-        const tasks = (await this.getTasks({
+        const { tasks } = await this.getTasks({
           list,
           page,
-        })).tasks;
+        });
         return tasks.map((task) => ({
           label: task.name,
           value: task.id,
