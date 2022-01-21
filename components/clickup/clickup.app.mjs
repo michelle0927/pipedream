@@ -1,7 +1,6 @@
-const axios = require("axios");
-const axiosRetry = require("axios-retry");
+import { axios } from "@pipedream/platform";
 
-module.exports = {
+export default {
   type: "app",
   app: "clickup",
   propDefinitions: {
@@ -10,7 +9,7 @@ module.exports = {
       label: "Workspace",
       description: "Workspace",
       async options() {
-        const workspaces = (await this.getWorkspaces()).teams;
+        const workspaces = (await this.getWorkspaces({})).teams;
         return workspaces.map((workspace) => ({
           label: workspace.name,
           value: workspace.id,
@@ -22,7 +21,9 @@ module.exports = {
       label: "Space",
       description: "Space",
       async options({ workspace }) {
-        const spaces = (await this.getSpaces(workspace)).spaces;
+        const spaces = (await this.getSpaces({
+          workspace,
+        })).spaces;
         return spaces.map((space) => ({
           label: space.name,
           value: space.id,
@@ -34,7 +35,9 @@ module.exports = {
       label: "Folder",
       description: "Folder",
       async options({ space }) {
-        const folders = (await this.getFolders(space)).folders;
+        const folders = (await this.getFolders({
+          space,
+        })).folders;
         return folders.map((folder) => ({
           label: folder.name,
           value: folder.id,
@@ -50,8 +53,12 @@ module.exports = {
         folder, space,
       }) {
         const lists = folder
-          ? (await this.getLists(folder)).lists
-          : (await this.getFolderlessLists(space)).lists;
+          ? (await this.getLists({
+            folder,
+          })).lists
+          : (await this.getFolderlessLists({
+            space,
+          })).lists;
         return lists.map((list) => ({
           label: list.name,
           value: list.id,
@@ -63,7 +70,9 @@ module.exports = {
       label: "Assignees",
       description: "Select the assignees for the task",
       async options({ workspace }) {
-        const members = await this.getWorkspaceMembers(workspace);
+        const members = await this.getWorkspaceMembers({
+          workspace,
+        });
         return members.map((member) => ({
           label: member.user.username,
           value: member.user.id,
@@ -77,7 +86,9 @@ module.exports = {
       description:
         "Select the tags for the task to filter when searching for the tasks",
       async options({ space }) {
-        const tags = (await this.getTags(space)).tags;
+        const tags = (await this.getTags({
+          space,
+        })).tags;
         return tags.map((tag) => tag.name);
       },
       optional: true,
@@ -87,7 +98,9 @@ module.exports = {
       label: "Status",
       description: "Select the status of the task",
       async options({ list }) {
-        const statuses = (await this.getList(list)).statuses;
+        const statuses = (await this.getList({
+          list,
+        })).statuses;
         return statuses.map((status) => status.status);
       },
       optional: true,
@@ -99,7 +112,10 @@ module.exports = {
       async options({
         list, page,
       }) {
-        const tasks = (await this.getTasks(list, page)).tasks;
+        const tasks = (await this.getTasks({
+          list,
+          page,
+        })).tasks;
         return tasks.map((task) => ({
           label: task.name,
           value: task.id,
@@ -141,7 +157,10 @@ module.exports = {
       async options({
         list, page,
       }) {
-        const tasks = (await this.getTasks(list, page)).tasks;
+        const tasks = (await this.getTasks({
+          list,
+          page,
+        })).tasks;
         return tasks.map((task) => ({
           label: task.name,
           value: task.id,
@@ -150,10 +169,9 @@ module.exports = {
     },
   },
   methods: {
-    async _makeRequest(method, endpoint, data = null, params = null) {
-      axiosRetry(axios, {
-        retries: 3,
-      });
+    async _makeRequest({
+      method = "GET", endpoint, data, $,
+    }) {
       const config = {
         headers: {
           "content-type": "application/json",
@@ -161,48 +179,67 @@ module.exports = {
         },
         method,
         url: `https://api.clickup.com/api/v2/${endpoint}`,
-        params,
       };
       if (data) config.data = data;
-      const response = await axios(config).catch((err) => {
+      const response = await axios($ || this, config).catch((err) => {
         if (err.response.status !== 200) {
-          throw new Error(`API call failed with status code: ${err.response.status} after 3 retry attempts`);
+          throw new Error(`API call failed with status code: ${err.response.status}`);
         }
       });
-      return response.data;
+      return response;
     },
-    async getWorkspaces() {
-      return await this._makeRequest("GET", "team");
+    async getWorkspaces({ $ }) {
+      return this._makeRequest({
+        endpoint: "team",
+        $,
+      });
     },
-    async getSpaces(workspaceId) {
-      return await this._makeRequest(
-        "GET",
-        `team/${workspaceId}/space?archived=false`,
-      );
+    async getSpaces({
+      workspace, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `team/${workspace}/space?archived=false`,
+        $,
+      });
     },
-    async getFolders(spaceId) {
-      return await this._makeRequest(
-        "GET",
-        `space/${spaceId}/folder?archived=false`,
-      );
+    async getFolders({
+      space, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `space/${space}/folder?archived=false`,
+        $,
+      });
     },
-    async getList(listId) {
-      return await this._makeRequest("GET", `list/${listId}`);
+    async getList({
+      list, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `list/${list}`,
+        $,
+      });
     },
-    async getLists(folderId) {
-      return await this._makeRequest(
-        "GET",
-        `folder/${folderId}/list?archived=false`,
-      );
+    async getLists({
+      folder, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `folder/${folder}/list?archived=false`,
+        $,
+      });
     },
-    async getFolderlessLists(spaceId) {
-      return await this._makeRequest(
-        "GET",
-        `space/${spaceId}/list?archived=false`,
-      );
+    async getFolderlessLists({
+      space, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `space/${space}/list?archived=false`,
+        $,
+      });
     },
-    async getWorkspaceMembers(workspaceId) {
-      const { teams } = (await this.getWorkspaces());
+    async getWorkspaceMembers({
+      workspace: workspaceId, $,
+    }) {
+      const { teams } = (await this.getWorkspaces({
+        $,
+      }));
       const workspace = teams.filter(
         (workspace) => workspace.id == workspaceId,
       );
@@ -210,23 +247,54 @@ module.exports = {
         ? workspace[0].members
         : [];
     },
-    async getTags(spaceId) {
-      return await this._makeRequest("GET", `space/${spaceId}/tag`);
+    async getTags({
+      space, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `space/${space}/tag`,
+        $,
+      });
     },
-    async getTasks(listId, page = 0) {
-      return await this._makeRequest(
-        "GET",
-        `list/${listId}/task?archived=false&page=${page}`,
-      );
+    async getTasks({
+      list, page = 0, $,
+    }) {
+      return this._makeRequest({
+        endpoint: `list/${list}/task?archived=false&page=${page}`,
+        $,
+      });
     },
-    async createTask(listId, data) {
-      return await this._makeRequest("POST", `list/${listId}/task`, data);
+    async createTask({
+      list, data, $,
+    }) {
+      const config = {
+        method: "POST",
+        endpoint: `list/${list}/task`,
+        data,
+        $,
+      };
+      return this._makeRequest(config);
     },
-    async createList(folderId, data) {
-      return await this._makeRequest("POST", `folder/${folderId}/list`, data);
+    async createList({
+      folder, data, $,
+    }) {
+      const config = {
+        method: "POST",
+        endpoint: `folder/${folder}/list`,
+        data,
+        $,
+      };
+      return this._makeRequest(config);
     },
-    async createFolderlessList(spaceId, data) {
-      return await this._makeRequest("POST", `space/${spaceId}/list`, data);
+    async createFolderlessList({
+      space, data, $,
+    }) {
+      const config = {
+        method: "POST",
+        endpoint: `space/${space}/list`,
+        data,
+        $,
+      };
+      return this._makeRequest(config);
     },
   },
 };
