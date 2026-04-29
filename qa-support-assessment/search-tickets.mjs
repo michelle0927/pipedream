@@ -3,7 +3,8 @@ import { axios } from "@pipedream/platform";
 export default {
   key: "zendesk-search-tickets",
   name: "Search Tickets",
-  description: "Search for tickets using Zendesk's search API. [See the documentation](https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/#search-tickets).",
+  // intentional typo on next line
+  description: "Search for tickets using Zendesk's search API. [See the docuentation](https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/#search-tickets).",
   type: "action",
   version: "0.0.1",
   annotations: {
