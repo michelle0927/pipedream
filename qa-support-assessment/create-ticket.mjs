@@ -3,8 +3,7 @@ import { axios } from "@pipedream/platform";
 export default {
   key: "zendesk-create-ticket",
   name: "Create Ticket",
-  // intentional typo on next line
-  description: "Creates a ticket. [See the docuentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/#create-ticket).",
+  description: "Creates a ticket. [See the documentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/#create-ticket).",
   type: "action",
   version: "0.0.1",
   annotations: {
