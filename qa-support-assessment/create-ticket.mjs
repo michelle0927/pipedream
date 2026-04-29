@@ -3,13 +3,14 @@ import { axios } from "@pipedream/platform";
 export default {
   key: "zendesk-create-ticket",
   name: "Create Ticket",
-  description: "Creates a ticket. [See the documentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/#create-ticket).",
+  // intentional typo on next line
+  description: "Creates a ticket. [See the docuentation](https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/#create-ticket).",
   type: "action",
   version: "0.0.1",
   annotations: {
     destructiveHint: false,
     openWorldHint: true,
-    readOnlyHint: false,
+    readOnlyHint: true, // should be false
   },
   props: {
     zendesk: {
@@ -81,7 +82,7 @@ export default {
           },*/
           body: this.ticketCommentBody,
           priority: this.ticketPriority,
-          subject: this.ticketSubject,
+          subject: this.subject, // should be this.ticketSubject
           status: this.ticketStatus,
         },
       },
