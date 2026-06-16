@@ -251,7 +251,7 @@ export default {
     folderId: {
       type: "string",
       label: "Folder ID",
-      description: "The ID of the mail folder to retrieve. Use the **List Folders** action to get the list of folders.",
+      description: "The ID of the mail folder to retrieve. Well-known folder names are accepted directly: `inbox`, `sentitems`, `drafts`, `deleteditems`, `junkemail`, `archive`. For custom folders, use the **List Folders** action to resolve the display name to an ID.",
     },
     maxResults: {
       type: "integer",
@@ -645,27 +645,15 @@ export default {
         .query(pickBy(params))
         .get();
     },
-    async getFolderById({
-      folderId, params = {},
-    } = {}) {
-      const { value } = await this.client().api("/me/mailFolders")
-        .query(pickBy({
-          ...params,
-          $filter: `id eq '${folderId}'`,
-        }))
+    async getFolderById({ folderId } = {}) {
+      return this.client().api(`/me/mailFolders/${folderId}`)
         .get();
-      return value?.[0];
     },
     async getSharedFolderById({
-      userId, folderId, params = {},
+      userId, folderId,
     } = {}) {
-      const { value } = await this.client().api(`/users/${userId}/mailFolders`)
-        .query(pickBy({
-          ...params,
-          $filter: `id eq '${folderId}'`,
-        }))
+      return this.client().api(`/users/${userId}/mailFolders/${folderId}`)
         .get();
-      return value?.[0];
     },
     async *paginate({
       fn, args = {}, max,

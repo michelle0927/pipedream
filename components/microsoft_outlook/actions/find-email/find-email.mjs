@@ -209,19 +209,10 @@ export default {
     const combinedFilter = filterParts.join(" and ") || undefined;
 
     let folderId;
-    if (this.folderScope && this.folderScope !== "inbox" && this.folderScope !== "all") {
-      const folder = await this.microsoftOutlook.listAllFolders({
-        params: {
-          $filter: `displayName eq '${this.folderScope}'`,
-        },
-      });
-      if (folder.length > 0) {
-        folderId = folder[0].id;
-      } else {
-        throw new ConfigurationError(`Folder "${this.folderScope}" not found.`);
-      }
-    } else if (this.folderScope === "inbox") {
-      folderId = "inbox";
+    if (this.folderScope && this.folderScope !== "all") {
+      // Graph API accepts well-known names ("inbox", "sentitems", "drafts",
+      // "deleteditems", "junkemail", "archive") and raw folder IDs directly.
+      folderId = this.folderScope;
     }
 
     if (this.countOnly) {
